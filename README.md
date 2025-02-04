@@ -1,2 +1,2 @@
 # Multifractal_Analysis
-MATLAB implementation of multifractal analysis via box counting for 2D binary images using various geometric supports.
+This repository contains Python and MATLAB implementations for multifractal analysis via box counting. The Python code processes grayscale images, applies an elliptical mask, and computes the multifractal spectrum. The MATLAB scripts perform similar analysis using different computational approaches.
