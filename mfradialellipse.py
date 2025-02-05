@@ -143,7 +143,7 @@ def compute_multifractal_spectrum(prbM: np.ndarray, qvals: np.ndarray, X: np.nda
             if k == 1:
                 yD[idx, a] = np.sum(nonzero_prbM * np.log2(nonzero_prbM))
             else:
-                sum_powered = np.maximum(np.sum(nonzero_prbM**k), 1e-10)
+                sum_powered = np.maximum(np.sum(nonzero_prbM**k), 1e-30)
                 yD[idx, a] = np.log2(sum_powered)
 
                 mu = (nonzero_prbM**k) / sum_powered
@@ -199,7 +199,7 @@ def plot_multifractal_spectrum(qvals: np.ndarray, Dq: np.ndarray, myalpha: np.nd
 
 def main(image_path: str, qvals: np.ndarray, maxboxes: int = 5, threshold: int = 128, plots: bool = True) -> None:
     """
-    Main function to perform multifractal analysis on an image.
+    Function to perform multifractal analysis on an image.
 
     Parameters:
         image_path (str): Path to the input image.
@@ -227,6 +227,6 @@ def main(image_path: str, qvals: np.ndarray, maxboxes: int = 5, threshold: int =
     plot_multifractal_spectrum(qvals, Dq, myalpha, falpha, plots)
 
 if __name__ == "__main__":
-    image_path = r"C:\Users\woods\OneDrive\Documents\Research\Full Branching\Naga\Naga3 CM.png"
+    image_path = r"image.jpg"
     qvals = np.linspace(-10,10, 100)  # Initialize q-values
     main(image_path, qvals, maxboxes=5, threshold=128, plots=True)
