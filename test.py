@@ -234,14 +234,16 @@ def main(image_path: str, qvals: np.ndarray, maxboxes: int = 5, threshold: int =
 
     # Plot results
     plot_multifractal_spectrum(qvals, Dq, myalpha, falpha, plots)
+    
     return prbM
 
 if __name__ == "__main__":
     image_path = r"C:\Users\woods\OneDrive\Documents\Research\Full Branching\Naga\Naga1 CM.png"
     qvals = np.linspace(-10,10, 100)  # Initialize q-values
-    prbM = main(image_path, qvals, maxboxes=5, threshold=128, plots=True)
+    prbM_test = main(image_path, qvals, maxboxes=6, threshold=128, plots=True)
 
 
 end_time = time.perf_counter()
 execution_time = end_time - start_time
 print(f"Execution time: {execution_time} seconds")
+
