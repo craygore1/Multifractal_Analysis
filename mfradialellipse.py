@@ -3,10 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.linalg import solve
 from scipy.stats import linregress
 import cv2
-from typing import Tuple, List
-import time
-
-start_time = time.perf_counter()
+from typing import Tuple
 
 def load_and_preprocess_image(image_path: str, threshold: int = 128) -> np.ndarray:
     """
@@ -20,7 +17,6 @@ def load_and_preprocess_image(image_path: str, threshold: int = 128) -> np.ndarr
     # Apply binary thresholding
     _, binary_image = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
     
-    # Convert pixel values from 255 to 1 for easier processing
     binary_image[binary_image == 255] = 1
     return (binary_image == 1).astype(int)
 
@@ -76,7 +72,6 @@ def compute_box_counting(mylog: np.ndarray, sz: Tuple[int, int], maxboxes: int =
         d2 = -np.pi * np.ones(2**i - 1)
         A = np.diag(d1) + np.diag(d2, -1)
 
-        # Compute areas and solve for major/minor axis lengths
         areas = (totalarea / (2**i)) * np.ones(2**i)
         ab = solve(A, areas)
         minorrange = np.sqrt(ab / aspect)
@@ -86,37 +81,31 @@ def compute_box_counting(mylog: np.ndarray, sz: Tuple[int, int], maxboxes: int =
         minorrange = np.insert(minorrange, 0, 0)
         majorrange = np.insert(majorrange, 0, 0)
 
-        # Avoid division by zero
         majorrange = np.clip(np.nan_to_num(majorrange, nan=1e-10), 1e-10, None)
         minorrange = np.clip(np.nan_to_num(minorrange, nan=1e-10), 1e-10, None)
 
         # Define angular bins
         thetarange = np.linspace(-np.pi, np.pi, (2**i) + 1)
-
-        # **Vectorized Assignment of Bins**
         theta_bins = np.digitize(thetaind, thetarange) - 1  # Assign angular bins
 
-        # Compute normalized squared distances for all points at once
+        # Compute normalized squared distances for all points
         norm_sq = (Xind[:, None]**2 / majorrange[None, :-1]**2) + (Yind[:, None]**2 / minorrange[None, :-1]**2)
 
-        # Assign each point to the correct elliptical ring (vectorized)
+        # Assign each point to the correct elliptical ring
         radial_bin_indices = np.sum(norm_sq >= 1, axis=1) - 1  # Find the highest valid bin
 
         # **Ensure all indices are within bounds**
         theta_bins = np.clip(theta_bins, 0, len(thetarange) - 2)
         radial_bin_indices = np.clip(radial_bin_indices, 0, len(majorrange) - 2)
 
-        # Use a 2D histogram to properly partition across **both** dimensions
+        # Use a 2D histogram to accumulate partitions
         histogram, _, _ = np.histogram2d(theta_bins, radial_bin_indices, 
                                          bins=[len(thetarange) - 1, len(majorrange) - 1])
 
-        # Flatten histogram and store
         M[:histogram.size, i] = histogram.flatten()
 
-    # Normalize probabilities
     prbM = M / (np.sum(M, axis=0) + 1e-10)
 
-    # Compute log-scaled box sizes
     truesz = (2 * np.pi) / (2 ** np.arange(maxboxes + 1))
     X = np.log2(truesz)
 
@@ -186,7 +175,7 @@ def plot_multifractal_spectrum(qvals: np.ndarray, Dq: np.ndarray, myalpha: np.nd
         plots (bool): Whether to generate plots (default: True).
     """
     if not plots:
-        return  # Skip plotting if disabled
+        return
 
     # Plot D(q) vs. q
     plt.figure()
@@ -213,35 +202,25 @@ def main(image_path: str, qvals: np.ndarray, maxboxes: int = 5, threshold: int =
     Parameters:
         image_path (str): Path to the input image.
         qvals (np.ndarray): Array of q-values for multifractal analysis.
-        maxboxes (int): Maximum number of subdivisions (default: 5).
+        maxboxes (int): Maximum number of subdivisions = 4^maxboxes (default: 5).
         threshold (int): Threshold for binary image processing (default: 128).
         plots (bool): Whether to generate plots (default: True).
     """
-    # Load and preprocess the image
     binary_image = load_and_preprocess_image(image_path, threshold)
     plt.imshow(binary_image)
 
-    # Create and apply elliptical mask
     ellipse_mask = create_ellipse_mask(binary_image.shape)
     mylog = binary_image * ellipse_mask
-    #plt.imshow(mylog)
 
-    # Compute the box-counting probabilities and log-scaled box sizes
     prbM, X = compute_box_counting(mylog, binary_image.shape, maxboxes)
 
-    # Compute multifractal spectrum
     Dq, tauq, myalpha, falpha = compute_multifractal_spectrum(prbM, qvals, X)
 
-    # Plot results
     plot_multifractal_spectrum(qvals, Dq, myalpha, falpha, plots)
-    return prbM
+    
+    return Dq, myalpha, falpha
 
 if __name__ == "__main__":
-    image_path = r"C:\Users\woods\OneDrive\Documents\Research\Full Branching\Naga\Naga1 CM.png"
+    image_path = r"file.png"
     qvals = np.linspace(-10,10, 100)  # Initialize q-values
-    prbM = main(image_path, qvals, maxboxes=5, threshold=128, plots=True)
-
-
-end_time = time.perf_counter()
-execution_time = end_time - start_time
-print(f"Execution time: {execution_time} seconds")
+    M = main(image_path, qvals, maxboxes=5, threshold=128, plots=True)

@@ -103,7 +103,7 @@ def visualize_elliptical_partitions(mylog: np.ndarray, sz: Tuple[int, int], maxb
     plt.axis("equal")  # Keep aspect ratio consistent
     plt.show()
 
-image_path = r"C:\Users\woods\OneDrive\Documents\Research\Full Branching\Naga\Naga1 CM.png"
+image_path = r"file.png"
 threshold = 128
    
 binary_image = load_and_preprocess_image(image_path, threshold)
