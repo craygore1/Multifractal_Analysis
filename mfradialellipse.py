@@ -4,9 +4,7 @@ from scipy.linalg import solve
 from scipy.stats import linregress
 import cv2
 from typing import Tuple, List
-import time
 
-start_time = time.perf_counter()
 
 def load_and_preprocess_image(image_path: str, threshold: int = 128) -> np.ndarray:
     """
@@ -240,8 +238,3 @@ if __name__ == "__main__":
     image_path = r"C:\Users\woods\OneDrive\Documents\Research\Full Branching\Naga\Naga1 CM.png"
     qvals = np.linspace(-10,10, 100)  # Initialize q-values
     prbM = main(image_path, qvals, maxboxes=5, threshold=128, plots=True)
-
-
-end_time = time.perf_counter()
-execution_time = end_time - start_time
-print(f"Execution time: {execution_time} seconds")
